@@ -1,7 +1,7 @@
 #  Dont import urllib here
 import json
 import os
-from common.http_interface import *
+from libCore.http_interface import Http
 
 #with open('G:\\RestAPIFramework\\Config\\user_info.json') as f:
 #  data = json.load(f)
@@ -14,9 +14,11 @@ from common.http_interface import *
 class Connect:
 
     def __init__(self):
+        self.h =Http()
         self.data = self.get_auth_from_config()
-        self.g_headers = {'Authorization': "Token " + self.data["User2"]['_access_token'] ,
+        self.g_headers = {'Authorization': "Token " + self.data["User3"]['_access_token'] ,
                      'Content-Type': "application/json"}
+        self.get_auth_from_config()
 
     def get_auth_from_config(self):
         try:
@@ -29,69 +31,77 @@ class Connect:
                 raise Exception("FILE NOT FOUND")
             return data
         except Exception as e:
-            Logger.log_error("unable to find the path {}".format(str(e)))
+            print("unable to find the path {}".format(str(e)))
 
     def get_all_repos(self):
         try:
-            url = f"https://api.github.com/users/{self.data['User2']['_owner']}/repos"
-            response = get_resource(url, self.g_headers)
-            #print(response)
+            url = f"https://api.github.com/users/{self.data['User3']['_owner']}/repos"
+            response = self.h.get_resource(url, self.g_headers)
+            print(response)
             repos = [dict_repo["name"] for dict_repo in response]
-            Logger.log_info("getting all repos as expected ");
-            return repos
+            print("getting all repos as expected ")
+            #return repos
+            print(repos)
+            return True
         except Exception as e:
-            Logger.log_error("unable to get the repos {}".format(str(e)))
+            print("unable to get the repos {}".format(str(e)))
 
     def is_repo_name_exist(self, repo_name):
         try:
             repos = self.get_all_repos()
             #print(repos)
             if repo_name in repos:
-                Logger.log_info("repo name is existed in the response")
+                print("repo name is existed in the response")
                 return True
             else:
-                Logger.log_info("repo name doesn't exist in the list")
+                print("repo name doesn't exist in the list")
                 return False
         except Exception as e:
-            Logger.log_error("unable to locate the repo name from existing response{}".format(str(e)))
+            print("unable to locate the repo name from existing response{}".format(str(e)))
 
     def get_all_collaborators(self):
         try:
-            url = f"https://api.github.com/repos/{self.data['User2']['_owner']}/Automation/collaborators"
-            response = get_resource(url, self.g_headers)
+            url = f"https://api.github.com/repos/{self.data['User3']['_owner']}/MOBILE/collaborators"
+            response = self.h.get_resource(url, self.g_headers)
             #print(response)
             repos = [dict_repo["login"] for dict_repo in response]
-            Logger.log_info("getting all collabortors form the given repo");
-            return repos
+            print("getting all collabortors form the given repo");
+            print(repos)
+            return True
 
         except Exception as e:
-            Logger.log_error("unable to get the collaborators{}".format(str(e)))
+            print("unable to get the collaborators{}".format(str(e)))
+
 
     def add_collaborator(self, repo, user):
         try:
-            url = f"https://api.github.com/repos/{self.data['User2']['_owner']}/{repo}/collaborators/{user}"
-            response = create_resource(url=url, headers=self.g_headers, method="PUT")
-            Logger.log_info("requested succesfully to add a collaborator");
+            url = f"https://api.github.com/repos/{self.data['User3']['_owner']}/{repo}/collaborators/{user}"
+            response = self.h.create_resource(url=url, headers=self.g_headers, method="PUT")
+            print("requested succesfully to add a collaborator");
             return response.code
         except Exception as e:
-            Logger.log_error("getting issues to add a collaborator{}".format(str(e)))
+            print("getting issues to add a collaborator{}".format(str(e)))
 
-    def deleate_repo(self, repo_name):
+    def delete_repo(self, repo_name):
         try:
-            url = f"https://api.github.com/repos/{self.data['User2']['_owner']}/{repo_name}"
-            response = delete_resourse(url, self.g_headers)
-            Logger.log_info("sucessfully deleting a repo ")
+            data = json.dumps(repo_name).encode('utf-8')
+            url = f"https://api.github.com/repos/{self.data['User3']['_owner']}/{repo_name}"
+            response = self.h.delete_resourse(url, self.g_headers)
+            print("sucessfully deleting a repo ")
             return response.code
         except Exception as e:
-            Logger.log_error("unable to delete the repo{}".format(str(e)))
+            print("unable to delete the repo{}".format(str(e)))
 
     def create_repo(self, value):
         try:
             value = value
             data = json.dumps(value).encode('utf-8')
+            print(data)
             url = f"https://api.github.com/user/repos"
-            response = create_resource(url=url, headers=self.g_headers, data=self.data)
-            Logger.log_info("creating a repository succesfully");
+            #response = self.h.create_resource(url=url, headers=self.g_headers, data=self.data)
+            response=self.h.create_resource(url=url, headers=self.g_headers,data=data)
+
+            print("creating a repository succesfully")
             return response.code
         except Exception as e:
             raise Exception("Not able to create a repo{}".format(str(e)))
@@ -99,13 +109,11 @@ class Connect:
 
 if __name__ == "__main__":
     c = Connect()
+    #c.get_all_repos()
+    #print(c.is_repo_name_exist("MOBILE"))
+    #c.add_collaborator("MOBILE","mupputur")
     #print(c.get_all_collaborators())
-    print(c.get_all_repos())
-    #print(c.is_repo_name_exist('chenna'))
-    #print(c.add_collaborator('chenna', 'harry22'))
-    #result = c.deleate_repo('harry22')
-    #print(result)
-    #result = c.create_repo(value={"name": "harry19"})
-    #print(result)
-    #print(c.get_auth_from_config())
-    print(c.get_all_collaborators())
+    #c.create_repo(value={"name":"Windows"})
+    #print(c.delete_repo("Windows"))
+
+
